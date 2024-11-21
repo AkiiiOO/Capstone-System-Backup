@@ -32,7 +32,7 @@ INSERT INTO Users (Username, Password, FirstName, LastName, Contact_No, Security
 VALUES ('admin', 'admin', 'John', 'A', '09999999999', 'buggles', 1, GETDATE());
 
 CREATE TABLE UserAccessLevels (UserAccessLevelID INT PRIMARY KEY IDENTITY(1,1),
-							   UserID INT FOREIGN KEY REFERENCES Users(UserID),
+							   UserID INT FOREIGN KEY REFERENCES Users(UserID)ON DELETE CASCADE,
 							   AccessLevelID INT FOREIGN KEY REFERENCES AccessLevels(AccessLevelID),
 							   UNIQUE(UserID, AccessLevelID));
 SELECT * FROM UserAccessLevels
@@ -41,7 +41,7 @@ INSERT INTO UserAccessLevels (UserID, AccessLevelID) VALUES (1, 1);
 SELECT * FROM UserAccessLevels
 
 CREATE TABLE UserLog (LogID INT PRIMARY KEY IDENTITY(1,1),
-					  UserID INT FOREIGN KEY REFERENCES Users(UserID),
+					  UserID INT FOREIGN KEY REFERENCES Users(UserID)ON DELETE SET NULL,
 					  LoginDateTime DATETIME DEFAULT GETDATE(),
 					  LogoutDateTime DATETIME NULL);
 
@@ -57,7 +57,7 @@ CREATE TABLE Clients (ClientID INT IDENTITY(1,1) PRIMARY KEY,
 					  Contact_No Char(11),
 					  DateCreated DATETIME DEFAULT GETDATE(),
 					  CreatedBy VARCHAR(200),
-					  FOREIGN KEY (UserID) REFERENCES Users (UserID));
+					  FOREIGN KEY (UserID) REFERENCES Users (UserID)ON DELETE SET NULL);
 SELECT * FROM Clients
 
 --FOr the casket
@@ -75,10 +75,7 @@ CREATE TABLE Casket (CasketID INT IDENTITY(1,1) PRIMARY KEY,
 					 CasketImage IMAGE,
 					 CasketName VARCHAR(100),
 					 Price DECIMAL(10, 2));	
-INSERT INTO Casket (CasketTypeID, CasketImage, CasketName, Price)VALUES (1, NULL, 'Classic Oak Casket', 600.00),
-																		(2, NULL, 'Stainless Steel Casket', 900.00);
-SELECT * FROM Casket
-												
+					 									
 --For the Vehicle
 --maintenance
 CREATE TABLE VehicleType (VehicleTypeID INT IDENTITY(1,1) PRIMARY KEY,
@@ -94,8 +91,6 @@ CREATE TABLE Vehicle (VehicleID INT IDENTITY(1,1) PRIMARY KEY,
 					  VehicleName VARCHAR(100),
 					  Price DECIMAL(10, 2));
 					  
-INSERT INTO Vehicle (VehicleTypeID, VehicleImage, VehicleName, Price) VALUES (1, NULL, 'car1', 250.00),
-																			 (2, NULL, 'car2', 150.00);
 SELECT * FROM Vehicle		  
 -- For the Flower Arrangement
 --maintenance
@@ -110,9 +105,6 @@ CREATE TABLE FlowerArrangements (ArrangementID INT IDENTITY(1,1) PRIMARY KEY,
 								 ArrangementImage IMAGE,
 							 	 ArrangementName VARCHAR(200),
 								 Price DECIMAL(10, 2));
-								 
-INSERT INTO FlowerArrangements (ArrangementTypeID, ArrangementImage, ArrangementName, Price) VALUES (1, NULL, 'White Sympathy Floor', 45.00),
-																								    (2, NULL, 'Tulip Centerpiece', 55.00);
 SELECT * FROM FlowerArrangements
 
 --songs
@@ -128,7 +120,7 @@ INSERT INTO Song (SongName, Artist) VALUES ('About You', 'The 1975');
 SELECT * FROM Song
 
 CREATE TABLE Playlists (PlaylistsID INT IDENTITY(1,1) PRIMARY KEY,
-						UserID INT FOREIGN KEY REFERENCES Users(UserID),
+						UserID INT FOREIGN KEY REFERENCES Users(UserID)ON DELETE SET NULL,
 						PlaylistsName VARCHAR(100),
 						CreatedBy VARCHAR(250),
 						DateCreated DATETIME DEFAULT GETDATE());
@@ -138,8 +130,8 @@ INSERT INTO Playlists (UserID, PlaylistsName, CreatedBy) VALUES (1, 'Sad', 'John
 SELECT * FROM Playlists
 						
 CREATE TABLE PlaylistSongs (PlaylistSongsID INT IDENTITY(1,1) PRIMARY KEY,
-							SongID INT FOREIGN KEY REFERENCES Song(SongID),
-							PlaylistsID INT FOREIGN KEY REFERENCES Playlists(PlaylistsID),
+							SongID INT FOREIGN KEY REFERENCES Song(SongID)ON DELETE SET NULL,
+							PlaylistsID INT FOREIGN KEY REFERENCES Playlists(PlaylistsID)ON DELETE SET NULL,
 							DateCreated DATETIME DEFAULT GETDATE());
 SELECT * FROM PlaylistSongs
 
@@ -167,7 +159,7 @@ INSERT INTO Equipment (EquipmentName, EquipmentType, Quantity) VALUES
 
 --FOr PAckages
 CREATE TABLE Package (PackageID INT IDENTITY(1,1) PRIMARY KEY,
-					  CasketID INT  FOREIGN KEY REFERENCES Casket(CasketID),
+					  CasketID INT  FOREIGN KEY REFERENCES Casket(CasketID)ON DELETE CASCADE,
 					  PlaylistsID INT FOREIGN KEY REFERENCES Playlists(PlaylistsID),
 					  VehicleID INT  FOREIGN KEY REFERENCES Vehicle(VehicleID),
 					  PackageName VARCHAR(100),
@@ -177,12 +169,6 @@ CREATE TABLE Package (PackageID INT IDENTITY(1,1) PRIMARY KEY,
 					  EmbalmingDays INT,
 					  TotalPrice DECIMAL(10, 2),
 					  CreatedDate DATETIME DEFAULT GETDATE());
-
-INSERT INTO Package (PackageName, CasketID, PlaylistsID, VehicleID, CasketName, VehicleName,EmbalmingDays, TotalPrice) VALUES 
-					('Premium Package', 1, 2, 1, 'Classic Oak Casket', 'Luxury Hearse', 9, 895.00);
-INSERT INTO Package (PackageName, CasketID, PlaylistsID, VehicleID, CasketName, VehicleName,EmbalmingDays, TotalPrice) VALUES 
-					('Ordinary', 2, 2, 1,  'Stainless Steel Casket', 'Luxury Hearse', 0, 1195.00);
-
 SELECT * FROM Package
 
 CREATE TABLE PackageFlowerArrangements (PackageFlowerArrangementID INT IDENTITY(1,1) PRIMARY KEY,
@@ -192,11 +178,6 @@ CREATE TABLE PackageFlowerArrangements (PackageFlowerArrangementID INT IDENTITY(
 										Quantity INT, 
 										Additional Text, 
 										PricePerUnit DECIMAL(10, 2));
-
-
-INSERT INTO PackageFlowerArrangements (PackageID, ArrangementID, FlowerArrangementName, Quantity, Additional, PricePerUnit)
-VALUES (1, 1, 'White Sympathy Floor', 2, null , 90.00),
-	   (2, 1, 'White Sympathy Floor', 1, null, 45.00);
 	   
 SELECT * FROM PackageFlowerArrangements
 	   
@@ -206,14 +187,10 @@ CREATE TABLE PackageEquipments (PackageEquipmentID INT IDENTITY(1,1) PRIMARY KEY
 										 EquipmentName VARCHAR(200),
 										 EquipmentType VARCHAR(100),
 										 Quantity INT);
-
-INSERT INTO PackageEquipments (PackageID, EquipmentID, EquipmentName, EquipmentType, Quantity)
-VALUES (1, 1, 'Religion Stand Board', 'Stand', 1),
-	   (2, 1, 'Lights Silver', 'Light', 1);
 SELECT * FROM PackageEquipments
 
 CREATE TABLE CustomizePackage (CustomizePackageID INT IDENTITY(1,1) PRIMARY KEY,
-							   PackageID INT  FOREIGN KEY REFERENCES Package(PackageID),
+							   PackageID INT  FOREIGN KEY REFERENCES Package(PackageID)ON DELETE CASCADE,
 							   CasketID INT  FOREIGN KEY REFERENCES Casket(CasketID),
 							   VehicleID INT  FOREIGN KEY REFERENCES Vehicle(VehicleID),
 							   PlaylistSongsID INT FOREIGN KEY REFERENCES PlaylistSongs(PlaylistSongsID),
@@ -293,7 +270,7 @@ SELECT * FROM ReservationStatus
 --okay na
 CREATE TABLE ChapelReservation (ReservationID INT IDENTITY(1,1) PRIMARY KEY,   
 								ChapelID INT Null FOREIGN KEY REFERENCES Chapel(ChapelID),    
-								ClientID INT NOT NULL FOREIGN KEY REFERENCES Clients(ClientID),
+								ClientID INT NOT NULL FOREIGN KEY REFERENCES Clients(ClientID)ON DELETE CASCADE,
 								ReservationStatusID INT NULL FOREIGN KEY REFERENCES ReservationStatus(ReservationStatusID),
 								StartDate DATE NOT NULL,
 								EndDate DATE NOT NULL,
@@ -321,8 +298,8 @@ SELECT * FROM EquipmentStatus
 
 -- fixing
 CREATE TABLE ServiceRequests (ServiceRequestID INT IDENTITY(1,1) PRIMARY KEY,    
-							  UserID INT FOREIGN KEY REFERENCES Users(UserID),
-							  ClientID INT FOREIGN KEY REFERENCES Clients(ClientID),
+							  UserID INT FOREIGN KEY REFERENCES Users(UserID)ON DELETE SET NULL,
+							  ClientID INT FOREIGN KEY REFERENCES Clients(ClientID)ON DELETE CASCADE,
 							  ServiceStatusID INT FOREIGN KEY REFERENCES ServiceStatus(ServiceStatusID),
 							  CemeteryID INT FOREIGN KEY REFERENCES Cemeteries(CemeteryID),
 							  DocumentTypeID INT FOREIGN KEY REFERENCES DocumentType(DocumentTypeID),
@@ -331,9 +308,9 @@ CREATE TABLE ServiceRequests (ServiceRequestID INT IDENTITY(1,1) PRIMARY KEY,
 							  
 							  --package 
 							  CopPackageID INT  FOREIGN KEY REFERENCES Package(PackageID),
-							  CopCasketID INT FOREIGN KEY REFERENCES Casket(CasketID),
-							  CopVehicleID INT FOREIGN KEY REFERENCES Vehicle(VehicleID),
-							  CopPlaylistID INT FOREIGN KEY REFERENCES PlaylistSongs(PlaylistSongsID),
+							  CopCasketID INT FOREIGN KEY REFERENCES Casket(CasketID)ON DELETE SET NULL,
+							  CopVehicleID INT FOREIGN KEY REFERENCES Vehicle(VehicleID)ON DELETE SET NULL,
+							  CopPlaylistID INT FOREIGN KEY REFERENCES PlaylistSongs(PlaylistSongsID)ON DELETE SET NULL,
 						    
 						      
 							  -- Client and deceased information
@@ -374,7 +351,7 @@ CREATE TABLE ServiceRequests (ServiceRequestID INT IDENTITY(1,1) PRIMARY KEY,
 							  CreatedBy VARCHAR(250));
 SELECT * FROM ServiceRequests
 CREATE TABLE ServiceRequestsFlowerArrangements (ServiceRequestsFlowerArrangementID INT IDENTITY(1,1) PRIMARY KEY,
-												ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID),
+												ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID)ON DELETE SET NULL,
 												ArrangementID INT FOREIGN KEY REFERENCES FlowerArrangements(ArrangementID),
 												FlowerArrangementName VARCHAR(200),
 												Quantity INT, 
@@ -383,7 +360,7 @@ CREATE TABLE ServiceRequestsFlowerArrangements (ServiceRequestsFlowerArrangement
 SELECT * FROM ServiceRequestsFlowerArrangements
 
 CREATE TABLE ServiceRequestsPackageEquipments (ServiceRequestsPackageEquipmentID INT IDENTITY(1,1) PRIMARY KEY,
-											   ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID),
+											   ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID)ON DELETE SET NULL,
 											   EquipmentID INT FOREIGN KEY REFERENCES Equipment(EquipmentID),
 											   EquipmentStatusID INT FOREIGN KEY REFERENCES EquipmentStatus(EquipmentStatusID),
 											   EquipmentName VARCHAR(200),
@@ -468,7 +445,7 @@ SELECT * FROM Installments
 
 CREATE TABLE PaymentServiceRequests (PaymentServiceRequestID INT IDENTITY(1,1) PRIMARY KEY,
 									 PaymentID INT NOT NULL FOREIGN KEY REFERENCES Payments(PaymentID),
-									 ServiceRequestID INT NOT NULL FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID));
+									 ServiceRequestID INT NOT NULL FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID)ON DELETE CASCADE);
 SELECT * FROM PaymentServiceRequests
 
 
@@ -489,14 +466,14 @@ CREATE TABLE Employees (EmployeeID INT IDENTITY(1,1) PRIMARY KEY,
 						HireDate DATE );
 INSERT INTO Employees (FirstName, LastName, Contact_No, HireDate)
 VALUES 
-('John', 'Ken',  '09171234567', '2024-11-21'),
-('Jaymar', 'Ding', '09181234567', '2023-06-15');
+('John', 'asd',  '09171234567', '2024-11-21'),
+('asd', 'asd', '09181234567', '2023-06-15');
 SELECT * FROM Employees
 
 
 --wag muna 
 CREATE TABLE EquipmentRelease (EquipmentReleaseID INT IDENTITY(1,1) PRIMARY KEY,
-								ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID),
+								ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID)ON DELETE SET NULL,
 								EquipmentStatusID INT FOREIGN KEY REFERENCES EquipmentStatus(EquipmentStatusID),
 								EquipmentID INT FOREIGN KEY REFERENCES Equipment(EquipmentID),
 								Quantity INT NOT NULL,
@@ -507,3 +484,19 @@ CREATE TABLE EquipmentRelease (EquipmentReleaseID INT IDENTITY(1,1) PRIMARY KEY,
 
 SELECT * FROM EquipmentRelease
 
+CREATE TABLE DamageReport (DamageReportID INT IDENTITY(1,1) PRIMARY KEY,
+							ServiceRequestID INT FOREIGN KEY REFERENCES ServiceRequests(ServiceRequestID),
+							Location VARCHAR(255) NOT NULL,
+							DamageDescription VARCHAR(MAX) NOT NULL,
+							ActionTaken VARCHAR(MAX),
+							ReportedBy VARCHAR(100) NOT NULL,
+							ReportedDate DATETIME DEFAULT GETDATE());
+
+SELECT * FROM DamageReport
+
+CREATE TABLE DamageReportEquipment (DamageReportEquipmentID INT IDENTITY(1,1) PRIMARY KEY,
+									DamageReportID INT FOREIGN KEY REFERENCES DamageReport(DamageReportID),
+									EquipmentID INT FOREIGN KEY REFERENCES Equipment(EquipmentID),
+									Quantity INT NOT NULL);
+
+SELECT * FROM DamageReportEquipment
